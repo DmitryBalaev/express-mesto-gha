@@ -44,10 +44,9 @@ const createCard = (req, res) => {
 };
 
 const deleteCard = (req, res) => {
-  Card.findById(req.params.cardId)
+  Card.findByIdAndDelete(req.params.cardId)
     .orFail(new Error('NotValidId'))
-    .then((foundCard) => Card.deleteOne(foundCard)
-      .then(() => res.send({ message: foundCard })))
+    .then((foundCard) => res.send({ message: foundCard }))
     .catch((err) => {
       if (err instanceof CastError) {
         res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
