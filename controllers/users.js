@@ -1,29 +1,85 @@
+const mongoose = require('mongoose');
+
+const { ValidationError } = mongoose.Error;
 const User = require('../models/user');
 
-const getAllUsers = (req, res, next) => {
+const getAllUsers = (req, res) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch((err) => console.log(err));
-
-  // next();
+    .catch((err) => res.status(500).send({ message: `Что-то пошло не так: ${err.message}` }));
 };
 
-const getUser = (req, res, next) => {
+const getUser = (req, res) => {
   User.findById(req.params.userId)
+    .orFail(new Error('NotValidId'))
     .then((user) => res.send({ data: user }))
-    .catch((err) => console.log(err));
-
-  // next();
+    .catch((err) => {
+      if (err.message === 'NotValidId') {
+        res.status(404).send({ message: `Пользователь по указанному ${req.params.userId} не найден.` });
+      } else {
+        res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
+      }
+    });
 };
 
-const createUser = (req, res, next) => {
+const createUser = (req, res) => {
   const { name, about, avatar } = req.body;
 
   User.create({ name, about, avatar })
     .then(() => res.status(201).send({ name, about, avatar }))
-    .catch((err) => console.log(err));
-
-  next();
+    .catch((err) => {
+      if (err instanceof ValidationError) {
+        res.status(400).send({ message: err.message });
+      } else {
+        res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
+      }
+    });
 };
 
-module.exports = { getAllUsers, getUser, createUser };
+const updateUserInfo = (req, res) => {
+  const { name, about } = req.body;
+
+  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
+    .orFail(new Error('NotValidId'))
+    .then((updateUserData) => {
+      if (updateUserData) {
+        res.send({ data: updateUserData });
+      } else {
+        res.status(404).send({ message: `Пользователь по указанному ${req.params.userId} не найден.` });
+      }
+    })
+    .catch((err) => {
+      if (err instanceof ValidationError) {
+        res.status(400).send({ message: err.message });
+      } else if (err.message === 'NotValidId') {
+        res.status(404).send({ message: `Пользователь по указанному ${req.params.userId} не найден.` });
+      } else {
+        res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
+      }
+    });
+};
+
+const updateUserAvatar = (req, res) => {
+  const { avatar } = req.body;
+
+  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
+    .orFail(new Error('NotValidId'))
+    .then((updateUserData) => res.send({ data: updateUserData }))
+    .catch((err) => {
+      if (err instanceof ValidationError) {
+        res.status(400).send({ message: err.message });
+      } else if (err.message === 'NotValidId') {
+        res.status(404).send({ message: `Пользователь по указанному ${req.params.userId} не найден.` });
+      } else {
+        res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
+      }
+    });
+};
+
+module.exports = {
+  getAllUsers,
+  getUser,
+  createUser,
+  updateUserInfo,
+  updateUserAvatar,
+};

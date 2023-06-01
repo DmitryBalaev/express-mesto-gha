@@ -3,7 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 
 // eslint-disable-next-line import/no-unresolved
-const userRouter = require('./routes/userRouter');
+const usersRouter = require('./routes/userRouter');
 const cardsRouter = require('./routes/cardRouter');
 
 const app = express();
@@ -26,7 +26,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(userRouter);
+app.use(usersRouter);
 app.use(cardsRouter);
 
 app.listen(PORT, () => {
