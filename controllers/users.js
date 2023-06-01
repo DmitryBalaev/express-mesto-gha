@@ -11,14 +11,15 @@ const getAllUsers = (req, res) => {
 
 const getUser = (req, res) => {
   User.findById(req.params.userId)
-    .orFail(new Error('NotValidId'))
-    .then((user) => res.send({ data: user }))
-    .catch((err) => {
-      if (err.message === 'NotValidId') {
-        res.status(404).send({ message: `Пользователь по указанному ${req.params.userId} не найден.` });
+    .then((user) => {
+      if (user) {
+        res.status(200).send({ data: user });
       } else {
-        res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
+        res.status(404).send({ message: `Пользователь по указанному ${req.params.userId} не найден.` });
       }
+    })
+    .catch((err) => {
+      res.status(400).send({ message: err.message });
     });
 };
 
