@@ -46,15 +46,11 @@ const createCard = (req, res) => {
 const deleteCard = (req, res) => {
   Card.findByIdAndDelete(req.params.cardId)
     .orFail(new Error('NotValidId'))
-    .then((deletedCard) => {
-      if (deletedCard) {
-        res.send({ message: deletedCard });
-      } else {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
-      }
-    })
+    .then((deletedCard) => res.send({ message: deletedCard }))
     .catch((err) => {
-      if (err.message === 'NotValidId') {
+      if (err instanceof CastError) {
+        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+      } else if (err.message === 'NotValidId') {
         res.status(RESOURCE_NOT_FOUND).send({ message: 'карточка или пользователь не найден или был запрошен несуществующий роут' });
       } else {
         res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' });
@@ -80,15 +76,11 @@ const setLikeCard = (req, res) => {
 const removeLikeCard = (req, res) => {
   Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
     .orFail(new Error('NotValidId'))
-    .then((card) => {
-      if (card) {
-        res.send({ data: card });
-      } else {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
-      }
-    })
+    .then((card) => res.send({ data: card }))
     .catch((err) => {
-      if (err.message === 'NotValidId') {
+      if (err instanceof CastError) {
+        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+      } else if (err.message === 'NotValidId') {
         res.status(RESOURCE_NOT_FOUND).send({ message: 'карточка или пользователь не найден или был запрошен несуществующий роут' });
       } else {
         res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' });
