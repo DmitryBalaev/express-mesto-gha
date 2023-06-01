@@ -4,22 +4,42 @@ const Card = require('../models/card');
 
 const { CastError, ValidationError } = mongoose.Error;
 
+const {
+  GENERAL_ERROR,
+  RESOURCE_NOT_FOUND,
+  BAD_REQUEST,
+  STATUS_OK_CREATED,
+  STATUS_OK,
+} = require('../utils/constants');
+
 const getAllCards = (req, res) => {
   Card.find({})
-    .then((cards) => res.send({ data: cards }))
-    .catch((err) => res.status(500).send({ message: `Что-то пошло не так: ${err.message}` }));
+    .orFail(new Error('NotValidId'))
+    .then((cards) => res.status(STATUS_OK).send({ data: cards }))
+    .catch((err) => {
+      if (err instanceof CastError) {
+        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+      } else if (err.message === 'NotValidId') {
+        res.status(RESOURCE_NOT_FOUND).send({ message: 'карточка или пользователь не найден или был запрошен несуществующий роут' });
+      } else {
+        res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' });
+      }
+    });
 };
 
 const createCard = (req, res) => {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user._id })
-    .then((card) => res.status(201).send({ data: card }))
+    .orFail(new Error('NotValidId'))
+    .then((card) => res.status(STATUS_OK_CREATED).send({ data: card }))
     .catch((err) => {
       if (err instanceof ValidationError) {
-        res.status(400).send({ message: err.message });
+        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+      } else if (err.message === 'NotValidId') {
+        res.status(RESOURCE_NOT_FOUND).send({ message: 'карточка или пользователь не найден или был запрошен несуществующий роут' });
       } else {
-        res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
+        res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' });
       }
     });
 };
@@ -31,11 +51,11 @@ const deleteCard = (req, res) => {
       .then(() => res.send({ message: foundCard })))
     .catch((err) => {
       if (err instanceof CastError) {
-        res.status(400).send({ message: `Передан некорректный ID : ${req.params.cardId}` });
+        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
       } else if (err.message === 'NotValidId') {
-        res.status(404).send({ message: `Передан несуществующий ID : ${req.params.cardId}` });
+        res.status(RESOURCE_NOT_FOUND).send({ message: 'карточка или пользователь не найден или был запрошен несуществующий роут' });
       } else {
-        res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
+        res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' });
       }
     });
 };
@@ -46,11 +66,11 @@ const setLikeCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err instanceof CastError) {
-        res.status(400).send({ message: `Передан некорректный ID : ${req.params.cardId}` });
+        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
       } else if (err.message === 'NotValidId') {
-        res.status(404).send({ message: `Передан несуществующий ID : ${req.params.cardId}` });
+        res.status(RESOURCE_NOT_FOUND).send({ message: 'карточка или пользователь не найден или был запрошен несуществующий роут' });
       } else {
-        res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
+        res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' });
       }
     });
 };
@@ -61,11 +81,11 @@ const removeLikeCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err instanceof CastError) {
-        res.status(400).send({ message: `Передан некорректный ID : ${req.params.cardId}` });
+        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
       } else if (err.message === 'NotValidId') {
-        res.status(404).send({ message: `Передан несуществующий ID : ${req.params.cardId}` });
+        res.status(RESOURCE_NOT_FOUND).send({ message: 'карточка или пользователь не найден или был запрошен несуществующий роут' });
       } else {
-        res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
+        res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' });
       }
     });
 };

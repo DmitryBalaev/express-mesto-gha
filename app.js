@@ -1,8 +1,6 @@
-/* eslint-disable import/no-extraneous-dependencies */
 const express = require('express');
 const mongoose = require('mongoose');
 
-// eslint-disable-next-line import/no-unresolved
 const usersRouter = require('./routes/userRouter');
 const cardsRouter = require('./routes/cardRouter');
 
@@ -19,8 +17,7 @@ app.use(express.json());
 
 app.use((req, res, next) => {
   req.user = {
-    // eslint-disable-next-line comma-dangle
-    _id: '647756bd85d90546a56b9889'
+    _id: '647756bd85d90546a56b9889',
   };
 
   next();
