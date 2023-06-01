@@ -6,7 +6,7 @@ const User = require('../models/user');
 const getAllUsers = (req, res) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch((err) => res.status(500).send({ message: `Что-то пошло не так: ${err.message}` }));
+    .catch((err) => res.status(400).send({ message: `Что-то пошло не так: ${err.message}` }));
 };
 
 const getUser = (req, res) => {
@@ -52,8 +52,6 @@ const updateUserInfo = (req, res) => {
     .catch((err) => {
       if (err instanceof ValidationError) {
         res.status(400).send({ message: err.message });
-      } else if (err.message === 'NotValidId') {
-        res.status(404).send({ message: `Пользователь по указанному ${req.params.userId} не найден.` });
       } else {
         res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
       }
@@ -69,8 +67,6 @@ const updateUserAvatar = (req, res) => {
     .catch((err) => {
       if (err instanceof ValidationError) {
         res.status(400).send({ message: err.message });
-      } else if (err.message === 'NotValidId') {
-        res.status(404).send({ message: `Пользователь по указанному ${req.params.userId} не найден.` });
       } else {
         res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
       }
