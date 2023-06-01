@@ -31,7 +31,6 @@ const createCard = (req, res) => {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user._id })
-    .orFail(new Error('NotValidId'))
     .then((card) => res.status(STATUS_OK_CREATED).send({ data: card }))
     .catch((err) => {
       if (err instanceof ValidationError) {

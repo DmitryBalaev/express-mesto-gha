@@ -47,7 +47,6 @@ const createUser = (req, res) => {
   const { name, about, avatar } = req.body;
 
   User.create({ name, about, avatar })
-    .orFail(new Error('NotValidId'))
     .then((userData) => res.status(STATUS_OK_CREATED).send({ data: userData }))
     .catch((err) => {
       if (err instanceof CastError) {
