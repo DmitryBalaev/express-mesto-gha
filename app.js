@@ -29,6 +29,10 @@ app.use((req, res, next) => {
 app.use(usersRouter);
 app.use(cardsRouter);
 
+app.use('*', (req, res) => {
+  res.status(404).send({ message: 'Указан не существующий путь.' });
+});
+
 app.listen(PORT, () => {
   console.log(`app listening port: ${PORT} `);
 });
