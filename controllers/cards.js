@@ -46,7 +46,13 @@ const createCard = (req, res) => {
 const deleteCard = (req, res) => {
   Card.findByIdAndDelete(req.params.cardId)
     .orFail(new Error('NotValidId'))
-    .then((geletedCard) => res.send({ message: geletedCard }))
+    .then((deletedCard) => {
+      if (!deletedCard) {
+        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+      } else {
+        res.send({ message: deletedCard });
+      }
+    })
     .catch((err) => {
       if (err.message === 'NotValidId') {
         res.status(RESOURCE_NOT_FOUND).send({ message: 'карточка или пользователь не найден или был запрошен несуществующий роут' });
@@ -74,7 +80,13 @@ const setLikeCard = (req, res) => {
 const removeLikeCard = (req, res) => {
   Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
     .orFail(new Error('NotValidId'))
-    .then((card) => res.send({ data: card }))
+    .then((card) => {
+      if (!card) {
+        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+      } else {
+        res.send({ data: card });
+      }
+    })
     .catch((err) => {
       if (err.message === 'NotValidId') {
         res.status(RESOURCE_NOT_FOUND).send({ message: 'карточка или пользователь не найден или был запрошен несуществующий роут' });
