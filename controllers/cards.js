@@ -43,17 +43,33 @@ const createCard = (req, res) => {
     });
 };
 
+// const deleteCard = (req, res) => {
+//   Card.findByIdAndDelete(req.params.cardId)
+//     .orFail(new Error('NotValidId'))
+//     .then((deletedCard) => res.send({ message: deletedCard }))
+//     .catch((err) => {
+//       if (err instanceof CastError) {
+//         res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+//       } else if (err.message === 'NotValidId') {
+//         res.status(RESOURCE_NOT_FOUND).send({ message: 'карточка или пользователь не найден или был запрошен несуществующий роут' });
+//       } else {
+//         res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' });
+//       }
+//     });
+// };
+
 const deleteCard = (req, res) => {
-  Card.findByIdAndDelete(req.params.cardId)
+  Card.findById(req.params.cardId)
     .orFail(new Error('NotValidId'))
-    .then((deletedCard) => res.send({ message: deletedCard }))
+    .then((foundCard) => Card.deleteOne(foundCard)
+      .then(() => res.send({ message: foundCard })))
     .catch((err) => {
       if (err instanceof CastError) {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+        res.status(400).send({ message: `Передан некорректный ID : ${req.params.cardId}` });
       } else if (err.message === 'NotValidId') {
-        res.status(RESOURCE_NOT_FOUND).send({ message: 'карточка или пользователь не найден или был запрошен несуществующий роут' });
+        res.status(404).send({ message: `Передан несуществующий ID : ${req.params.cardId}` });
       } else {
-        res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' });
+        res.status(500).send({ message: `Что-то пошло не так: ${err.message}` });
       }
     });
 };
