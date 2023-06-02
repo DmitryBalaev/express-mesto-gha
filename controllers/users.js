@@ -14,15 +14,7 @@ const {
 const getAllUsers = (req, res) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch((err) => {
-      if (err instanceof CastError) {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
-      } else if (err.message === 'NotValidId') {
-        res.status(RESOURCE_NOT_FOUND).send({ message: 'карточка или пользователь не найден или был запрошен несуществующий роут' });
-      } else {
-        res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' });
-      }
-    });
+    .catch(() => res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' }));
 };
 
 const getUser = (req, res) => {
@@ -51,8 +43,6 @@ const createUser = (req, res) => {
     .catch((err) => {
       if (err instanceof ValidationError) {
         res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
-      } else if (err.message === 'NotValidId') {
-        res.status(RESOURCE_NOT_FOUND).send({ message: 'карточка или пользователь не найден или был запрошен несуществующий роут' });
       } else {
         res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' });
       }
@@ -91,7 +81,7 @@ const updateUserAvatar = (req, res) => {
       }
     })
     .catch((err) => {
-      if (err instanceof CastError) {
+      if (err instanceof ValidationError) {
         res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
       } else {
         res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' });

@@ -15,13 +15,7 @@ const {
 const getAllCards = (req, res) => {
   Card.find({})
     .then((cards) => res.status(STATUS_OK).send({ data: cards }))
-    .catch((err) => {
-      if (err instanceof CastError) {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
-      } else {
-        res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' });
-      }
-    });
+    .catch(() => res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' }));
 };
 
 const createCard = (req, res) => {
@@ -32,8 +26,6 @@ const createCard = (req, res) => {
     .catch((err) => {
       if (err instanceof ValidationError) {
         res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
-      } else if (err.message === 'NotValidId') {
-        res.status(RESOURCE_NOT_FOUND).send({ message: 'карточка или пользователь не найден или был запрошен несуществующий роут' });
       } else {
         res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' });
       }
