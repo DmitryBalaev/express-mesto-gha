@@ -5,6 +5,4 @@ class Duplicate extends Error {
   }
 }
 
-module.exports = {
-  Duplicate,
-};
+module.exports = Duplicate;

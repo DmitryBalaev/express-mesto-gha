@@ -7,7 +7,7 @@ const User = require('../models/user');
 const { SECRET } = require('../utils/config');
 const { NotFound } = require('../utils/responsesErrors/NotFound');
 const { BadRequest } = require('../utils/responsesErrors/BadRequest');
-const { Duplicate } = require('../utils/responsesErrors/Duplicate');
+const Duplicate = require('../utils/responsesErrors/Duplicate');
 
 const {
   STATUS_OK_CREATED,
@@ -39,29 +39,21 @@ const createUser = (req, res, next) => {
     name, about, avatar, email, password,
   } = req.body;
 
-  return bcrypt
-    .hash(password, 10)
-    .then((hash) => {
-      User.create({
-        name,
-        about,
-        avatar,
-        email,
-        password: hash,
-      });
-    })
+  return bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    }))
     .then(() => res.status(STATUS_OK_CREATED).send({
-      name,
-      about,
-      avatar,
-      email,
+      name, about, avatar, email,
     }))
     .catch((err) => {
       if (err instanceof ValidationError) {
         next(new BadRequest(err.message));
       } else if (err.code === 11000) {
-        next(new Duplicate('Пользователь с таким Email, уже зарегестрирован'));
-      } else next(err);
+        next(new Duplicate('Пользователь с таким email уже зарегистрирован.'));
+      } else {
+        next(err);
+      }
     });
 };
 
@@ -105,6 +97,10 @@ const login = (req, res, next) => {
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign(({ _id: user._id }, SECRET, { expiresIn: '7d' }));
+      res.cookie('jwt', token, {
+        maxAge: 3600000 * 24 * 7,
+        httpOnly: true,
+      });
       res.send({ token });
     })
     .catch((err) => next(err));

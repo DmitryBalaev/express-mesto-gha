@@ -18,6 +18,7 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
+mongoose.set('strictQuery', false);
 mongoose.connect(MONGO_DB, {
   useUnifiedTopology: true,
   useNewUrlParser: true,

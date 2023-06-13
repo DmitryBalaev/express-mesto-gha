@@ -11,9 +11,7 @@ module.exports = function uathMiddleware(req, res, next) {
   const { authorization } = req.headers;
   let payload;
 
-  if (!authorization || !authorization.startsWith('Bearer ')) {
-    return handleError(req, res, next);
-  }
+  if (!authorization || !authorization.startsWith('Bearer ')) return handleError(req, res, next);
   try {
     const token = req.headers.authorization.split(' ')[1];
     if (!token) {
