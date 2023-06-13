@@ -1,9 +1,12 @@
-require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const { errors } = require('celebrate');
+
+const {
+  
+}
 
 const router = require('./routes');
 const { PORT, MONGO_DB } = require('./utils/config');
