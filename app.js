@@ -5,7 +5,7 @@ const helmet = require('helmet');
 const { errors } = require('celebrate');
 
 const {
-  MONGO_DB = 'mongodb://localhost:27017/mestodb',
+  MONGO_DB = 'mongodb://127.0.0.1:27017/mestodb',
   PORT = 3000,
 } = process.env;
 
