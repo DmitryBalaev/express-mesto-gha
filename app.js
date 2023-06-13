@@ -1,13 +1,19 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 
+const { login, createUser } = require('./controllers/users');
 const usersRouter = require('./routes/userRouter');
 const cardsRouter = require('./routes/cardRouter');
+const { PORT, MONGO_DB } = require('./utils/config');
+const { NotFound } = require('./utils/responsesErrors/NotFound');
+const authMiddleware = require('./middlewares/auth');
+const { responseHandler } = require('./middlewares/responseHandler');
+const { validateLogin, validateRegistration } = require('./utils/validationDataConfig');
 
 const app = express();
-const { PORT = 3000 } = process.env;
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -16,7 +22,7 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
-mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
+mongoose.connect(MONGO_DB, {
   useUnifiedTopology: true,
   useNewUrlParser: true,
   autoIndex: true,
@@ -35,12 +41,17 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(usersRouter);
-app.use(cardsRouter);
+app.use(usersRouter, authMiddleware);
+app.use(cardsRouter, authMiddleware);
 
-app.use('*', (req, res) => {
-  res.status(404).send({ message: 'Указан не существующий путь.' });
+app.use('/signin', validateLogin, login);
+app.use('/signup', validateRegistration, createUser);
+
+app.use('*', authMiddleware, (req, res, next) => {
+  next(new NotFound('Указан не существующий путь.'));
 });
+
+app.use(responseHandler);
 
 app.listen(PORT, () => {
   console.log(`app listening port: ${PORT} `);

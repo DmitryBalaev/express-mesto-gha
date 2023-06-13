@@ -1,92 +1,113 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-const { ValidationError, CastError } = mongoose.Error;
+const { ValidationError } = mongoose.Error;
 const User = require('../models/user');
+const { SECRET } = require('../utils/config');
+const { NotFound } = require('../utils/responsesErrors/NotFound');
+const { BadRequest } = require('../utils/responsesErrors/BadRequest');
+const { Duplicate } = require('../utils/responsesErrors/Duplicate');
 
 const {
-  GENERAL_ERROR,
-  RESOURCE_NOT_FOUND,
-  BAD_REQUEST,
   STATUS_OK_CREATED,
   STATUS_OK,
 } = require('../utils/constants');
 
-const getAllUsers = (req, res) => {
+const getAllUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch(() => res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' }));
+    .catch((err) => next(err));
 };
 
-const getUser = (req, res) => {
+const getUser = (req, res, next) => {
   User.findById(req.params.userId)
-    .then((user) => {
-      if (user) {
-        res.status(STATUS_OK).send({ data: user });
-      } else {
-        res.status(RESOURCE_NOT_FOUND).send({ message: 'карточка или пользователь не найден или был запрошен несуществующий роут' });
-      }
-    })
-    .catch((err) => {
-      if (err instanceof CastError) {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
-      } else {
-        res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' });
-      }
-    });
+    .orFail(new NotFound(`Пользователь с таким ${req.user._id} не найден.`))
+    .then((user) => res.status(STATUS_OK).send({ data: user }))
+    .catch((err) => next(err));
 };
 
-const createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
+const getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .orFail(new NotFound(`Пользователь с таким ${req.user._id} не найден.`))
+    .then((user) => res.send({ data: user }))
+    .catch((err) => next(err));
+};
 
-  User.create({ name, about, avatar })
-    .then((userData) => res.status(STATUS_OK_CREATED).send({ data: userData }))
+const createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+
+  return bcrypt
+    .hash(password, 10)
+    .then((hash) => {
+      User.create({
+        name,
+        about,
+        avatar,
+        email,
+        password: hash,
+      });
+    })
+    .then(() => res.status(STATUS_OK_CREATED).send({
+      name,
+      about,
+      avatar,
+      email,
+    }))
     .catch((err) => {
       if (err instanceof ValidationError) {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
-      } else {
-        res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' });
-      }
+        next(new BadRequest(err.message));
+      } else if (err.code === 11000) {
+        next(new Duplicate('Пользователь с таким Email, уже зарегестрирован'));
+      } else next(err);
     });
 };
 
-const updateUserInfo = (req, res) => {
+const updateUserInfo = (req, res, next) => {
   const { name, about } = req.body;
 
-  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
-    .then((updateUserData) => {
-      if (!updateUserData) {
-        res.status(RESOURCE_NOT_FOUND).send({ message: 'карточка или пользователь не найден или был запрошен несуществующий роут' });
-      } else {
-        res.send({ data: updateUserData });
-      }
-    })
+  User.findByIdAndUpdate(
+    req.user._id,
+    { name, about },
+    { new: true, runValidators: true },
+  )
+    .orFail(new NotFound(`Пользователь с таким ${req.user._id} не найден.`))
+    .then((updateUserData) => res.send({ data: updateUserData }))
     .catch((err) => {
       if (err instanceof ValidationError) {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
-      } else {
-        res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' });
-      }
+        next(new BadRequest(err.message));
+      } else next(err);
     });
 };
 
-const updateUserAvatar = (req, res) => {
+const updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
-  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
-    .then((updateUserData) => {
-      if (!updateUserData) {
-        res.status(RESOURCE_NOT_FOUND).send({ message: 'карточка или пользователь не найден или был запрошен несуществующий роут' });
-      } else {
-        res.send({ data: updateUserData });
-      }
-    })
+  User.findByIdAndUpdate(
+    req.user._id,
+    { avatar },
+    { new: true, runValidators: true },
+  )
+    .orFail(new NotFound('карточка или пользователь не найден'))
+    .then((updateUserData) => res.send({ data: updateUserData }))
     .catch((err) => {
       if (err instanceof ValidationError) {
-        res.status(BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
-      } else {
-        res.status(GENERAL_ERROR).send({ message: 'На сервере произошла ошибка' });
-      }
+        next(new BadRequest(err.message));
+      } else next(err);
     });
+};
+
+const login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign(({ _id: user._id }, SECRET, { expiresIn: '7d' }));
+      res.send({ token });
+    })
+    .catch((err) => next(err));
 };
 
 module.exports = {
@@ -95,4 +116,6 @@ module.exports = {
   createUser,
   updateUserInfo,
   updateUserAvatar,
+  login,
+  getCurrentUser,
 };
