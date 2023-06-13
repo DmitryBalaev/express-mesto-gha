@@ -5,11 +5,11 @@ const helmet = require('helmet');
 const { errors } = require('celebrate');
 
 const {
-  
-}
+  MONGO_DB = 'mongodb://localhost:27017/mestodb',
+  PORT = 3000,
+} = process.env;
 
 const router = require('./routes');
-const { PORT, MONGO_DB } = require('./utils/config');
 const { responseHandler } = require('./middlewares/responseHandler');
 
 const app = express();
