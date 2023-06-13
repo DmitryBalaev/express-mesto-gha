@@ -9,10 +9,10 @@ const {
 } = require('../controllers/users');
 const { validateUserId, validateUserUpdate, validateUserUpdateAvatar } = require('../utils/validationDataConfig');
 
-userRouter.get('/users', getAllUsers);
-userRouter.get('/users/:userId', validateUserId, getUser);
-userRouter.get('/users/me', getCurrentUser);
-userRouter.patch('/users/me', validateUserUpdate, updateUserInfo);
-userRouter.patch('/users/me/avatar', validateUserUpdateAvatar, updateUserAvatar);
+userRouter.get('/', getAllUsers);
+userRouter.get('/:userId', validateUserId, getUser);
+userRouter.get('/me', getCurrentUser);
+userRouter.patch('/me', validateUserUpdate, updateUserInfo);
+userRouter.patch('/me/avatar', validateUserUpdateAvatar, updateUserAvatar);
 
 module.exports = userRouter;
