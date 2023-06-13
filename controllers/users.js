@@ -33,13 +33,13 @@ const getCurrentUser = async (req, res, next) => {
     if (req.path === '/me') {
       id = req.user._id;
     } else {
-      id = req.params.id;
+      id = req.params._id;
     }
     const user = await User.findById(id);
     console.log(req.params.id)
 
     if (!user) {
-      next(new NotFound(`Пользователь с таким ${req.user._id} не найден.`))
+      throw new NotFound(`Пользователь с таким ${req.user._id} не найден.`);
     }
     res.send(user);
   } catch (err) {
