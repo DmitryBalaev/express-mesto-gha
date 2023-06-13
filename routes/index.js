@@ -10,7 +10,7 @@ router.use('/users', authMiddleware, userRouter);
 router.use('/cards', authMiddleware, cardRouter);
 
 router.use('/signin', validateLogin, login);
-router.post('/signup', validateRegistration, createUser);
+router.use('/signup', validateRegistration, createUser);
 
 router.use('*', authMiddleware, (req, res, next) => {
   next(new NotFound('Указан не существующий путь.'));

@@ -27,11 +27,33 @@ const getUser = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-const getCurrentUser = (req, res, next) => {
-  User.findById(req.user._id)
-    .orFail(new NotFound(`Пользователь с таким ${req.user._id} не найден.`))
-    .then((user) => res.send({ data: user }))
-    .catch((err) => next(err));
+const getCurrentUser = async (req, res, next) => {
+  try {
+    let id;
+    if (req.path === '/me') {
+      id = req.user._id;
+    } else {
+      id = req.params.id;
+    }
+    const user = await User.findById(id);
+    console.log(req.params.id)
+
+    if (!user) {
+      next(new NotFound(`Пользователь с таким ${req.user._id} не найден.`))
+    }
+    res.send(user);
+  } catch (err) {
+    if (err.name === 'CastError') {
+      next(new BadRequest('Переданы некорректные данные.'));
+    }
+    next(err);
+  }
+
+  // console.log("here")
+  // User.findById(req.user._id)
+  //   .orFail(new NotFound(`Пользователь с таким ${req.user._id} не найден.`))
+  //   .then((user) => res.send({ data: user }))
+  //   .catch((err) => next(err));
 };
 
 const createUser = (req, res, next) => {
@@ -91,19 +113,19 @@ const updateUserAvatar = (req, res, next) => {
     });
 };
 
-const login = (req, res, next) => {
-  const { email, password } = req.body;
-
-  return User.findUserByCredentials(email, password)
-    .then((user) => {
-      const token = jwt.sign(({ _id: user._id }, SECRET, { expiresIn: '7d' }));
-      res.cookie('jwt', token, {
-        maxAge: 3600000 * 24 * 7,
-        httpOnly: true,
-      });
-      res.send({ token });
-    })
-    .catch((err) => next(err));
+const login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findUserByCredentials(email, password);
+    const token = jwt.sign({ _id: user._id }, SECRET, { expiresIn: '7d' });
+    res.send({ token });
+    res.cookie('jwt', token, {
+      maxAge: 3600000 * 24 * 7,
+      httpOnly: true,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 module.exports = {
