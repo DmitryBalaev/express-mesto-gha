@@ -33,7 +33,7 @@ const getCurrentUser = async (req, res, next) => {
     if (req.path === '/me') {
       id = req.user._id;
     } else {
-      id = req.params._id;
+      id = req.params.id;
     }
     const user = await User.findById(id);
     console.log(req.params.id)
@@ -43,9 +43,9 @@ const getCurrentUser = async (req, res, next) => {
     }
     res.send(user);
   } catch (err) {
-    if (err.name === 'CastError') {
-      next(new BadRequest('Переданы некорректные данные.'));
-    }
+    // if (err.name === 'CastError') {
+    //   next(new BadRequest('Переданы некорректные данные.'));
+    // }
     next(err);
   }
 
