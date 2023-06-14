@@ -34,7 +34,7 @@ const deleteCard = (req, res, next) => {
     .orFail(new NotFound(`Передан не существующий ${req.params.cardId} карточки`))
     .then(async (deletedCard) => {
       if (!deletedCard.owner.equals(req.user._id)) {
-        next(new Forbidden('Карточка принадлежит другому пользователю'));
+        return next(new Forbidden('Карточка принадлежит другому пользователю'));
       }
       await Card.deleteOne(deletedCard);
       return res.send(deletedCard);

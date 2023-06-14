@@ -22,7 +22,7 @@ const getAllUsers = (req, res, next) => {
 
 const getUser = (req, res, next) => {
   User.findById(req.params.userId)
-    .orFail(new NotFound(`Пользователь с таким ${req.user._id} не найден.`))
+    .orFail(new NotFound(`Пользователь с таким ${req.params.userId} не найден.`))
     .then((user) => res.status(STATUS_OK).send({ data: user }))
     .catch((err) => next(err));
 };
@@ -96,11 +96,11 @@ const login = async (req, res, next) => {
     const { email, password } = req.body;
     const user = await User.findUserByCredentials(email, password);
     const token = jwt.sign({ _id: user._id }, SECRET, { expiresIn: '7d' });
-    res.send({ token });
     res.cookie('jwt', token, {
       maxAge: 3600000 * 24 * 7,
       httpOnly: true,
     });
+    res.send({ token });
   } catch (err) {
     next(err);
   }
