@@ -10,7 +10,7 @@ const {
 const { validateUserId, validateUserUpdate, validateUserUpdateAvatar } = require('../utils/validationDataConfig');
 
 userRouter.get('/', getAllUsers);
-userRouter.get('/:userId', validateUserId, getUser);
+userRouter.get('/:userId', validateUserId, getCurrentUser);
 userRouter.get('/me', getCurrentUser);
 userRouter.patch('/me', validateUserUpdate, updateUserInfo);
 userRouter.patch('/me/avatar', validateUserUpdateAvatar, updateUserAvatar);

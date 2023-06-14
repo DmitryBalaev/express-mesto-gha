@@ -38,14 +38,14 @@ const getCurrentUser = async (req, res, next) => {
     const user = await User.findById(id);
     console.log(req.params.id)
 
-    if (!user) {
-      throw new NotFound(`Пользователь с таким ${req.user._id} не найден.`);
-    }
+    // if (!user) {
+    //   throw new NotFound(`Пользователь с таким ${req.user._id} не найден.`);
+    // }
     res.send(user);
   } catch (err) {
-    // if (err.name === 'CastError') {
-    //   next(new BadRequest('Переданы некорректные данные.'));
-    // }
+    if (err.name === 'CastError') {
+      next(new NotFound(`Пользователь с таким ${req.user._id} не найден.`));
+    }
     next(err);
   }
 
