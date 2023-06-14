@@ -27,8 +27,8 @@ const getUser = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-const getCurrentUser = (req, res, next) => {
-  User.findById(req.user._id)
+const getCurrentUser = async (req, res, next) => {
+  await User.findById(req.user._id)
     .orFail(new NotFound(`Пользователь с таким ${req.user._id} не найден.`))
     .then((user) => res.send({ data: user }))
     .catch((err) => next(err));
