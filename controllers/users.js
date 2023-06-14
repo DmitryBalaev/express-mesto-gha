@@ -27,33 +27,11 @@ const getUser = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-const getCurrentUser = async (req, res, next) => {
-  try {
-    let id;
-    if (req.path === '/me') {
-      id = req.user._id;
-    } else {
-      id = req.params.id;
-    }
-    const user = await User.findById(id);
-    console.log(req.params.id)
-
-    if (!user) {
-      throw new NotFound(`Пользователь с таким ${req.user._id} не найден.`);
-    }
-    res.send(user);
-  } catch (err) {
-    if (err.name === 'CastError') {
-      next(new BadRequest('Переданны не корректные данные'));
-    }
-    next(err);
-  }
-
-  // console.log("here")
-  // User.findById(req.user._id)
-  //   .orFail(new NotFound(`Пользователь с таким ${req.user._id} не найден.`))
-  //   .then((user) => res.send({ data: user }))
-  //   .catch((err) => next(err));
+const getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .orFail(new NotFound(`Пользователь с таким ${req.user._id} не найден.`))
+    .then((user) => res.send({ data: user }))
+    .catch((err) => next(err));
 };
 
 const createUser = (req, res, next) => {
@@ -118,6 +96,7 @@ const login = async (req, res, next) => {
     const { email, password } = req.body;
     const user = await User.findUserByCredentials(email, password);
     const token = jwt.sign({ _id: user._id }, SECRET, { expiresIn: '7d' });
+    console.log(token);
     res.send({ token });
     res.cookie('jwt', token, {
       maxAge: 3600000 * 24 * 7,
