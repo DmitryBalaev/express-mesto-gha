@@ -27,8 +27,8 @@ const getUser = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-const getCurrentUser = async (req, res, next) => {
-  await User.findById(req.user._id)
+const getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
     .orFail(new NotFound(`Пользователь с таким ${req.user._id} не найден.`))
     .then((user) => res.send({ data: user }))
     .catch((err) => next(err));
@@ -96,7 +96,6 @@ const login = async (req, res, next) => {
     const { email, password } = req.body;
     const user = await User.findUserByCredentials(email, password);
     const token = jwt.sign({ _id: user._id }, SECRET, { expiresIn: '7d' });
-    console.log(token);
     res.send({ token });
     res.cookie('jwt', token, {
       maxAge: 3600000 * 24 * 7,
