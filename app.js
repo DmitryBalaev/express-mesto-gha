@@ -8,7 +8,7 @@ const { errors } = require('celebrate');
 const router = require('./routes');
 const { responseHandler } = require('./middlewares/responseHandler');
 
-const { PORT = 5500, MONGO_DB = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;
+const { PORT = 3000, MONGO_DB = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;
 
 const app = express();
 app.use(cookieParser());
